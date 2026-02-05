@@ -1,0 +1,6 @@
+This is file containt string utilities
+
+
+
+[A[A[A[3~[3~[3~[3~[3~[....
+....

@@ -19,7 +19,7 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -27,9 +27,7 @@ jobs:
           python-version: '3.9'
 
       - name: Install Dependencies
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install boto3
+        run: pip install boto3
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -39,4 +37,24 @@ jobs:
           aws-region: ${{ env.REGION }}
 
       - name: Trigger Glue Job
-        run: python assignment.py
+        run: |
+          python - <<EOF
+import os
+import boto3
+
+client = boto3.client("glue", region_name=os.environ["REGION"])
+
+response = client.start_job_run(
+    JobName=os.environ["GLUE_JOB_NAME"],
+    Arguments={
+        "--INPUT_PATH": os.environ["INPUT_PATH"],
+        "--OUTPUT_PATH": os.environ["OUTPUT_PATH"],
+        "--DATABASE": os.environ["DATABASE"],
+        "--TABLE": os.environ["TABLE"],
+        "--FILLNA_CUSTOMER_NAME": os.environ["FILLNA_CUSTOMER_NAME"],
+        "--FILLNA_EMAIL": os.environ["FILLNA_EMAIL"]
+    }
+)
+
+print("Glue Job started with Run ID:", response["JobRunId"])
+EOF

@@ -19,7 +19,7 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -28,7 +28,8 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          pip install boto3
+          python -m pip install --upgrade pip
+          python -m pip install boto3
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -38,4 +39,4 @@ jobs:
           aws-region: ${{ env.REGION }}
 
       - name: Trigger Glue Job
-        run:  python assignment.py
+        run: python assignment.py

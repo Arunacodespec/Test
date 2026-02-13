@@ -3,7 +3,7 @@ import time
 import sys
 
 # Configuration
-REGION = "us-east-1"
+# REGION = "us-east-1"
 GLUE_JOB_NAME = "my_etl_job"
 S3_BUCKET = "fin-platform-raw-dev"
 S3_KEY = "s3://fin-platform-raw-dev/raw/customers/customers.csv"

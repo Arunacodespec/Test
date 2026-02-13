@@ -1,22 +1,22 @@
 name: my_etl_job
 
 on:
-  workflow_dispatch:  # manual trigger
+  workflow_dispatch:  # Manual trigger in GitHub
 
 jobs:
-  run-glue-job:
+  trigger-glue-job:
     runs-on: windows-latest
 
     env:
       # --------------------------
-      # S3 & ETL CONFIG (merged into workflow)
+      # S3 & ETL CONFIGURATION
       # --------------------------
       INPUT_PATH: "s3://fin-platform-raw-dev/raw/customers/customers.csv"
       OUTPUT_PATH: "s3://fin-platform-raw-dev/curated/customer_transactions/"
-      DATABASE: "my_glue_database"       # optional Glue catalog database
-      TABLE: "customers"                 # optional Glue catalog table
+      DATABASE: "my_glue_database"       # Glue Catalog database
+      TABLE: "customers"                 # Glue Catalog table
       REGION: "us-east-1"
-      GLUE_JOB_NAME: ""                   # optional: put Glue Job name if triggering Glue Job
+      GLUE_JOB_NAME: "my_glue_job"       # Replace with your actual Glue Job name
       FILLNA_CUSTOMER_NAME: "Unknown"
       FILLNA_EMAIL: "Unknown"
 
@@ -31,12 +31,12 @@ jobs:
         with:
           python-version: '3.9'
 
-      # 3️⃣ Install dependencies
+      # 3️⃣ Install boto3 for AWS Glue API calls
       - name: Install Dependencies
         run: |
-          pip install boto3 pyyaml pyspark
+          pip install boto3
 
-      # 4️⃣ Configure AWS credentials
+      # 4️⃣ Configure AWS Credentials
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -44,6 +44,35 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.REGION }}
 
-      # 5️⃣ Run ETL Python Script (pass env variables)
-      - name: Run Glue Trigger Script
-        run: python assignment.py --input_path "$env:INPUT_PATH" --output_path "$env:OUTPUT_PATH" --database "$env:DATABASE" --table "$env:TABLE" --region "$env:REGION" --glue_job_name "$env:GLUE_JOB_NAME" --fillna_customer_name "$env:FILLNA_CUSTOMER_NAME" --fillna_email "$env:FILLNA_EMAIL"
+      # 5️⃣ Trigger AWS Glue Job
+      - name: Trigger Glue Job
+        run: |
+          python - <<EOF
+          import os
+          import boto3
+
+          # Read config from env variables
+          glue_job_name = os.environ["GLUE_JOB_NAME"]
+          region = os.environ["REGION"]
+          input_path = os.environ["INPUT_PATH"]
+          output_path = os.environ["OUTPUT_PATH"]
+          database = os.environ["DATABASE"]
+          table = os.environ["TABLE"]
+          fillna_customer_name = os.environ["FILLNA_CUSTOMER_NAME"]
+          fillna_email = os.environ["FILLNA_EMAIL"]
+
+          # Start Glue job
+          client = boto3.client("glue", region_name=region)
+          response = client.start_job_run(
+              JobName=glue_job_name,
+              Arguments={
+                  "--INPUT_PATH": input_path,
+                  "--OUTPUT_PATH": output_path,
+                  "--DATABASE": database,
+                  "--TABLE": table,
+                  "--FILLNA_CUSTOMER_NAME": fillna_customer_name,
+                  "--FILLNA_EMAIL": fillna_email
+              }
+          )
+          print("Glue Job started with Run ID:", response["JobRunId"])
+          EOF

@@ -1,31 +1,67 @@
 name: my_etl_job
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:  # Manual trigger
 
 jobs:
-  run-glue-job:
-    runs-on: windows-latest
+  trigger-glue-job:
+    runs-on: ubuntu-latest  # Linux runner to avoid Windows PowerShell issues
+
+    env:
+      # S3 & ETL CONFIG
+      INPUT_PATH: "s3://fin-platform-raw-dev/raw/customers/customers.csv"
+      OUTPUT_PATH: "s3://fin-platform-raw-dev/curated/customer_transactions/"
+      DATABASE: "my_glue_database"
+      TABLE: "customers"
+      REGION: "us-east-1"
+      GLUE_JOB_NAME: "my_glue_job"  # Replace with your Glue job name
+      FILLNA_CUSTOMER_NAME: "Unknown"
+      FILLNA_EMAIL: "Unknown"
 
     steps:
+      # 1️⃣ Checkout repo
       - name: Checkout Repository
         uses: actions/checkout@v3
 
+      # 2️⃣ Set up Python
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.9'
 
+      # 3️⃣ Install boto3 for AWS Glue API calls
       - name: Install Dependencies
         run: |
           pip install boto3
 
+      # 4️⃣ Configure AWS credentials
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
+          aws-region: ${{ env.REGION }}
 
-      - name: Run Glue Trigger Script
-        run: python trigger_glue_job.py
+      # 5️⃣ Trigger Glue Job
+      - name: Trigger Glue Job
+        run: |
+          python - <<EOF
+import os
+import boto3
+
+client = boto3.client("glue", region_name=os.environ["REGION"])
+
+response = client.start_job_run(
+    JobName=os.environ["GLUE_JOB_NAME"],
+    Arguments={
+        "--INPUT_PATH": os.environ["INPUT_PATH"],
+        "--OUTPUT_PATH": os.environ["OUTPUT_PATH"],
+        "--DATABASE": os.environ["DATABASE"],
+        "--TABLE": os.environ["TABLE"],
+        "--FILLNA_CUSTOMER_NAME": os.environ["FILLNA_CUSTOMER_NAME"],
+        "--FILLNA_EMAIL": os.environ["FILLNA_EMAIL"]
+    }
+)
+
+print("Glue Job started with Run ID:", response["JobRunId"])
+EOF

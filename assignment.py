@@ -3,17 +3,17 @@ import time
 import sys
 
 # Configuration
-# REGION = "us-east-1"
+REGION = "us-east-1"
 GLUE_JOB_NAME = "my_etl_job"
 S3_BUCKET = "fin-platform-raw-dev"
-S3_KEY = "s3://fin-platform-raw-dev/raw/customers/customers.csv"
+S3_KEY = "raw/customers/customers.csv"
 LOCAL_FILE = "customers.csv"
 
-def upload_to_s3():
-    s3 = boto3.client("s3", region_name=REGION)
-    print("Uploading file to S3...")
-    s3.upload_file(LOCAL_FILE, S3_BUCKET, S3_KEY)
-    print("Upload complete.")
+# def upload_to_s3():
+#     s3 = boto3.client("s3", region_name=REGION)
+#     print("Uploading file to S3...")
+#     s3.upload_file(LOCAL_FILE, S3_BUCKET, S3_KEY)
+#     print("Upload complete.")
 
 def start_glue_job():
     glue = boto3.client("glue", region_name=REGION)

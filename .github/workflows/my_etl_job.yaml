@@ -1,31 +1,58 @@
 name: my_etl_job
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:  # manual trigger
 
 jobs:
   run-glue-job:
     runs-on: windows-latest
 
+    env:
+      # --------------------------
+      # S3 & ETL CONFIG (merged into workflow)
+      # --------------------------
+      INPUT_PATH: "s3://fin-platform-raw-dev/raw/customers/customers.csv"
+      OUTPUT_PATH: "s3://fin-platform-raw-dev/curated/customer_transactions/"
+      DATABASE: "my_glue_database"       # optional Glue catalog database
+      TABLE: "customers"                 # optional Glue catalog table
+      REGION: "us-east-1"
+      GLUE_JOB_NAME: ""                   # optional: put Glue Job name if triggering Glue Job
+      FILLNA_CUSTOMER_NAME: "Unknown"
+      FILLNA_EMAIL: "Unknown"
+
     steps:
+      # 1️⃣ Checkout repository
       - name: Checkout Repository
         uses: actions/checkout@v3
 
+      # 2️⃣ Set up Python
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.9'
 
+      # 3️⃣ Install dependencies
       - name: Install Dependencies
         run: |
-          pip install boto3
+          pip install boto3 pyyaml pyspark
 
+      # 4️⃣ Configure AWS credentials
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
-          
+          aws-region: ${{ env.REGION }}
+
+      # 5️⃣ Run ETL Python Script (pass env variables)
       - name: Run Glue Trigger Script
-        run: python assignment.py
+        run: |
+          python assignment.py \
+            --input_path "$INPUT_PATH" \
+            --output_path "$OUTPUT_PATH" \
+            --database "$DATABASE" \
+            --table "$TABLE" \
+            --region "$REGION" \
+            --glue_job_name "$GLUE_JOB_NAME" \
+            --fillna_customer_name "$FILLNA_CUSTOMER_NAME" \
+            --fillna_email "$FILLNA_EMAIL"

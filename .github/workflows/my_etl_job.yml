@@ -38,13 +38,4 @@ jobs:
           aws-region: ${{ env.REGION }}
 
       - name: Trigger Glue Job
-        run: |
-          python assignment.py \
-            --input_path ${{ env.INPUT_PATH }} \
-            --output_path ${{ env.OUTPUT_PATH }} \
-            --database ${{ env.DATABASE }} \
-            --table ${{ env.TABLE }} \
-            --region ${{ env.REGION }} \
-            --glue_job_name ${{ env.GLUE_JOB_NAME }} \
-            --fillna_customer_name ${{ env.FILLNA_CUSTOMER_NAME }} \
-            --fillna_email ${{ env.FILLNA_EMAIL }}
+        run:  python assignment.py

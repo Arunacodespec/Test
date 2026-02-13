@@ -12,7 +12,7 @@ from pyspark.sql.types import IntegerType, StringType
 # --------------------------
 # CONFIGURATION
 # --------------------------
-CONFIG_PATH = ".github/workflows/my_etl_job.yaml"
+CONFIG_PATH = ".github/workflows/"
 
 
 def load_config(path):

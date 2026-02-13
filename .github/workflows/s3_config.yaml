@@ -1,0 +1,10 @@
+# ETL configuration for assignment.py
+input_path: "s3://fin-platform-raw-dev/raw/customers/customers.csv"
+output_path: "s3://fin-platform-raw-dev/curated/customer_transactions/"
+database: "my_glue_database"   # Optional: Glue Catalog database
+table: "customers"             # Optional: Glue Catalog table
+region: "us-east-1"
+glue_job_name: null            # If you want to trigger an existing Glue Job, put the name here; otherwise null
+fillna_dict:
+  Customer_Name: "Unknown"
+  Email: "Unknown"

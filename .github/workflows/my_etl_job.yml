@@ -28,4 +28,4 @@ jobs:
           aws-region: us-east-1
 
       - name: Run Glue Trigger Script
-        run: python trigger_glue_job.py
+        run: python assignment.py

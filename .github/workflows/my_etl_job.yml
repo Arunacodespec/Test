@@ -27,5 +27,11 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
+          input_path: "s3://fin-platform-raw-dev/raw/customers/customers.csv"
+output_path: "s3://fin-platform-raw-dev/processed/customers/"
+database: "my_glue_database"
+table: "customers"
+region: "us-east-1"
+
       - name: Run Glue Trigger Script
         run: python assignment.py

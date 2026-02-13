@@ -46,13 +46,4 @@ jobs:
 
       # 5️⃣ Run ETL Python Script (pass env variables)
       - name: Run Glue Trigger Script
-        run: |
-          python assignment.py \
-            --input_path "$INPUT_PATH" \
-            --output_path "$OUTPUT_PATH" \
-            --database "$DATABASE" \
-            --table "$TABLE" \
-            --region "$REGION" \
-            --glue_job_name "$GLUE_JOB_NAME" \
-            --fillna_customer_name "$FILLNA_CUSTOMER_NAME" \
-            --fillna_email "$FILLNA_EMAIL"
+        run: python assignment.py --input_path "$env:INPUT_PATH" --output_path "$env:OUTPUT_PATH" --database "$env:DATABASE" --table "$env:TABLE" --region "$env:REGION" --glue_job_name "$env:GLUE_JOB_NAME" --fillna_customer_name "$env:FILLNA_CUSTOMER_NAME" --fillna_email "$env:FILLNA_EMAIL"

@@ -1,47 +1,51 @@
-from awsglue.context import GlueContext
-from pyspark.context import SparkContext
-from pyspark.sql.functions import col
-from pyspark.sql.types import IntegerType, StringType
+import boto3
+import time
+import sys
 
-# Init Spark / Glue
-sc = SparkContext()
-glueContext = GlueContext(sc)
-spark = glueContext.spark_session
+# Configuration
+REGION = "us-east-1"
+GLUE_JOB_NAME = "my_etl_job"
+S3_BUCKET = "fin-platform-raw-dev"
+S3_KEY = "s3://fin-platform-raw-dev/raw/customers/customers.csv"
+LOCAL_FILE = "customers.csv"
 
-# Paths
-INPUT_CSV_PATH = "s3://my-input-bucket/customers/customers.csv"
-OUTPUT_PARQUET_PATH = "s3://my-curated-bucket/customers_parquet/"
+def upload_to_s3():
+    s3 = boto3.client("s3", region_name=us-east-1)
+    print("Uploading file to S3...")
+    s3.upload_file(LOCAL_FILE, S3_BUCKET, S3_KEY)
+    print("Upload complete.")
 
-# Read CSV from S3
-df = (
-    spark.read
-    .option("header", "true")
-    .option("inferSchema", "true")
-    .csv(INPUT_CSV_PATH)
-)
+def start_glue_job():
+    glue = boto3.client("glue", region_name=us-east-1)
+    print("Starting Glue job...")
+    response = glue.start_job_run(JobName=GLUE_JOB_NAME)
+    job_run_id = response['JobRunId']
+    print(f"Glue Job started with Run ID: {job_run_id}")
+    return job_run_id
 
-# Limit to 100 records
-df_100 = df.limit(100)
+def monitor_glue_job(job_run_id):
+    glue = boto3.client("glue", region_name=REGION)
+    print("Monitoring Glue job...")
 
-# Explicit schema cleanup (best practice)
-df_clean = (
-    df_100
-    .withColumn("Index", col("Index").cast(IntegerType()))
-    .withColumn("Customer_Id", col("Customer_Id").cast(IntegerType()))
-    .withColumn("First_Name", col("First_Name").cast(StringType()))
-    .withColumn("Last_Name", col("Last_Name").cast(StringType()))
-    .withColumn("Company", col("Company").cast(StringType()))
-    .withColumn("City", col("City").cast(StringType()))
-    .withColumn("Country", col("Country").cast(StringType()))
-)
+    while True:
+        response = glue.get_job_run(
+            JobName=GLUE_JOB_NAME,
+            RunId=job_run_id
+        )
+        status = response['JobRun']['JobRunState']
+        print(f"Current Status: {status}")
 
-# Write Parquet (Snappy compressed)
-(
-    df_clean.write
-    .mode("overwrite")        # change to append for incremental
-    .format("parquet")
-    .option("compression", "snappy")
-    .save(OUTPUT_PARQUET_PATH)
-)
+        if status in ['SUCCEEDED', 'FAILED', 'STOPPED', 'TIMEOUT']:
+            print(f"Final Status: {status}")
+            break
 
-print("✅ Customer Parquet data written to S3")
+        time.sleep(30)
+
+if __name__ == "__main__":
+    try:
+        upload_to_s3()
+        job_run_id = start_glue_job()
+        monitor_glue_job(job_run_id)
+    except Exception as e:
+        print("Error:", str(e))
+        sys.exit(1)

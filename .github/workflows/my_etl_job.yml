@@ -1,40 +1,35 @@
 name: my_etl_job
 
 on:
-  workflow_dispatch:  # Manual trigger
+  workflow_dispatch:
 
 jobs:
   trigger-glue-job:
-    runs-on: ubuntu-latest  # Linux runner to avoid Windows PowerShell issues
+    runs-on: ubuntu-latest
 
     env:
-      # S3 & ETL CONFIG
       INPUT_PATH: "s3://fin-platform-raw-dev/raw/customers/customers.csv"
       OUTPUT_PATH: "s3://fin-platform-raw-dev/curated/customer_transactions/"
       DATABASE: "my_glue_database"
       TABLE: "customers"
       REGION: "us-east-1"
-      GLUE_JOB_NAME: "my_glue_job"  # Replace with your Glue job name
+      GLUE_JOB_NAME: "my_glue_job"
       FILLNA_CUSTOMER_NAME: "Unknown"
       FILLNA_EMAIL: "Unknown"
 
     steps:
-      # 1️⃣ Checkout repo
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      # 2️⃣ Set up Python
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.9'
 
-      # 3️⃣ Install boto3 for AWS Glue API calls
       - name: Install Dependencies
         run: |
           pip install boto3
 
-      # 4️⃣ Configure AWS credentials
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -42,7 +37,6 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.REGION }}
 
-      # 5️⃣ Trigger Glue Job
       - name: Trigger Glue Job
         run: |
           python - <<EOF

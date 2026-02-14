@@ -1,0 +1,21 @@
+customer_id,name,email,signup_date
+1,John Doe,john@email.com,2025-01-01
+2,Jane Smith,jane@email.com,2025-01-03
+3,Michael Brown,michael@email.com,2025-01-05
+4,Emily Davis,emily@email.com,2025-01-07
+5,David Wilson,david@email.com,2025-01-10
+6,Sarah Johnson,sarah@email.com,2025-01-12
+7,Daniel Martinez,daniel@email.com,2025-01-15
+8,Laura Anderson,laura@email.com,2025-01-18
+9,James Taylor,james@email.com,2025-01-20
+10,Olivia Thomas,olivia@email.com,2025-01-22
+11,Robert Moore,robert@email.com,2025-01-25
+12,Linda Jackson,linda@email.com,2025-01-28
+13,William White,william@email.com,2025-02-01
+14,Emma Harris,emma@email.com,2025-02-03
+15,Charles Martin,charles@email.com,2025-02-05
+16,Ava Thompson,ava@email.com,2025-02-08
+17,Joseph Garcia,joseph@email.com,2025-02-10
+18,Mia Martinez,mia@email.com,2025-02-12
+19,Thomas Robinson,thomas@email.com,2025-02-15
+20,Sophia Clark,sophia@email.com,2025-02-18
